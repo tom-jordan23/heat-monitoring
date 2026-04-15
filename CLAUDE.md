@@ -1,4 +1,4 @@
-# Community Sentinel — Project Guide
+# Environmental Monitoring Platform — Project Guide
 
 ## What This Is
 A modular edge-AI environmental monitoring platform built on ESP32-S3 + Edge Impulse + LoRa mesh (Meshtastic). Based on the [Forest-Guard](https://github.com/MukeshSankhla/Forest-Guard/) architecture.

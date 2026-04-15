@@ -2,11 +2,15 @@
 
 ## Project Goal
 
-Build an open-source, solar-powered, LoRa-mesh-networked environmental monitoring platform that combines three functions in a single node:
+Build an open-source, solar-powered, LoRa-mesh-networked environmental monitoring platform that combines three functions in a single self-contained node:
 
-1. **Fire detection** in dense informal settlements where smoke detection is unreliable
-2. **Urban heat mapping** to add a heat vulnerability layer to humanitarian mapping (HOT/OSM)
-3. **Air quality monitoring** to detect, map, and track air quality impacts on vulnerable populations over time
+1. **Fire detection** using multi-sensor fusion and on-device ML — works where smoke detection alone is unreliable
+2. **Urban heat mapping** with distributed temperature, humidity, UV, and pressure sensors at neighborhood-level resolution — tracking not just current conditions but how vulnerability is shifting over time
+3. **Air quality monitoring** to detect, classify, and track pollution sources over time
+
+The platform operates without any existing infrastructure (no WiFi, cellular, or cloud required) and forms a self-organizing IoT mesh with edge analysis.
+
+A core design premise: as climate change intensifies, existing systems — drainage, cooling infrastructure, air quality management, fire suppression capacity — will be pushed past their design limits. Communities and populations that cope today will become vulnerable tomorrow. Continuous distributed monitoring maps not just current hazards but marginal conditions, identifying where systems are approaching failure before they actually fail. Vulnerability maps are not static — they are shifting, and the data to track that shift doesn't exist at the resolution needed.
 
 ## Evaluated Base Projects
 
@@ -34,7 +38,7 @@ Build an open-source, solar-powered, LoRa-mesh-networked environmental monitorin
 **What it is:** Commercial fire detection system for informal settlements. Rate-of-rise temperature detection, wireless mesh with 60m radius, SMS alerts, paired with microinsurance.
 
 **Strengths:**
-- Most proven system for our exact target context (60,000+ devices, South Africa/Kenya/Bangladesh)
+- Most proven system for dense-environment fire detection (60,000+ devices, South Africa/Kenya/Bangladesh)
 - Rate-of-rise detection solves THE fundamental problem (cooking smoke false alarms)
 - 30-second alert cascade: detect → local 95dB alarm → mesh propagation → SMS/GPS to responders
 - 94% of fires contained when system activated
@@ -73,7 +77,7 @@ Build an open-source, solar-powered, LoRa-mesh-networked environmental monitorin
 **What it is:** Open-source air quality monitoring from Colombia. ESP32 + multi-sensor support + mobile Bluetooth + fixed WiFi modes.
 
 **Strengths:**
-- Explicitly designed for developing countries
+- Designed for low-cost, accessible deployment
 - Excellent multi-sensor abstraction library (canairio_sensorlib) supporting Plantower, Sensirion, Honeywell, Nova sensors
 - Dual deployment: mobile (Bluetooth+phone) and fixed (WiFi)
 - Very low cost ($50-100)
@@ -131,9 +135,9 @@ Build an open-source, solar-powered, LoRa-mesh-networked environmental monitorin
 |---|---|---|
 | **OpenAQ** | OpenAQ JSON API | Global air quality visibility, research correlation |
 | **Sensor.Community** | Luftdaten JSON | Join the largest citizen science network |
-| **OpenStreetMap** | `man_made=monitoring_station` tags | Map sensor locations in humanitarian mapping ecosystem |
+| **OpenStreetMap** | `man_made=monitoring_station` tags | Map sensor locations in community and global mapping ecosystems |
 | **OGC SensorThings API** | REST JSON + MQTT | Standardized IoT sensor interoperability |
-| **HDX (Humanitarian Data Exchange)** | GeoJSON / CSV | Publish heat vulnerability indices for humanitarian use |
+| **HDX (Humanitarian Data Exchange)** | GeoJSON / CSV | Publish vulnerability indices for humanitarian coordination |
 | **HOT Tasking Manager** | GeoJSON overlays | Inform where mapping campaigns should focus |
 
 ### Key standard: OGC SensorThings API
@@ -180,7 +184,7 @@ The OGC SensorThings API is the recommended middleware format. It standardizes h
 
 1. **No single project covers all three goals** — the landscape splits between fire detection (Forest-Guard) and air quality (Sensor.Community/CanAirIO), with nothing combining both
 2. **Lumkani's proven design can't be forked** — it's proprietary, but its principles are well-documented
-3. **Data interoperability is a first-class requirement** — none of the existing projects support OGC SensorThings, OpenAQ, or OSM integration
+3. **Data interoperability is a first-class requirement** — none of the existing projects support OGC SensorThings, OpenAQ, or humanitarian mapping integration
 4. **Combined multi-sensor inference** — no existing project does ML fusion across fire+air+heat sensors
 
 ### What to adopt from each project:
@@ -191,8 +195,8 @@ The OGC SensorThings API is the recommended middleware format. It standardizes h
 | **Lumkani** | Rate-of-rise fire detection algorithm, 30-second mesh alert cascade with local buzzer, community deployment model, microinsurance pairing concept |
 | **Sensor.Community** | PMS5003 integration patterns, data format for air quality reporting, calibration approaches, push-to-platform API pattern |
 | **CanAirIO** | Multi-sensor abstraction library design (canairio_sensorlib), mobile data collection concept |
-| **HOT/OSM ecosystem** | OGC SensorThings API output, OSM monitoring station tagging, GeoJSON heat vulnerability indices, HDX dataset publication |
-| **NOAA heat campaigns** | 100m grid resolution for heat mapping, morning/afternoon/evening measurement protocol, heat vulnerability index methodology |
+| **HOT/OSM ecosystem** | OGC SensorThings API output, OSM monitoring station tagging, GeoJSON vulnerability indices, HDX dataset publication |
+| **NOAA heat campaigns** | 100m grid resolution for heat mapping, morning/afternoon/evening measurement protocol, heat index methodology |
 
 ### Multi-hazard ML inference strategy:
 
@@ -209,6 +213,8 @@ Instead of separate models per hazard, train a **single multi-output Edge Impuls
 - Fire risk: none / possible / confirmed
 - Air quality: good / moderate / unhealthy / hazardous
 - Heat stress: normal / caution / danger / extreme
+
+Over time, aggregated classification outputs build a picture of how often each node approaches its thresholds — how many hours per week a location spends in "caution" vs "normal," and whether that ratio is shifting. This is the marginal-to-unworkable signal: a location that was 95% "normal" two years ago and is now 80% "normal" is on a trajectory that matters for planning, even if it hasn't yet crossed into "danger."
 
 **Cross-validation benefit:** A fire produces simultaneous rapid temp rise + PM2.5 spike + CO rise + humidity drop. This sensor fusion is far more reliable than any single sensor, and directly addresses the cooking-smoke false alarm problem (cooking produces smoke but NOT rapid temp rise + CO spike together).
 
@@ -244,14 +250,14 @@ The core sensor stack (BME688 + PMS5003 + thermistor + UV sensor on ESP32-S3) al
 **Weather / microclimate prediction — $0**
 The BME688 already measures barometric pressure, temperature, and humidity. From these we can derive:
 - **Dew point** (Magnus formula) — predicts fog, frost, condensation/mold risk in dwellings
-- **Barometric pressure trends** — a 3-hour falling trend reliably predicts storms 2-4 hours ahead; critical where formal weather services don't reach informal settlements
-- **Altitude estimation** — useful for understanding microclimates in hilly settlements
+- **Barometric pressure trends** — a 3-hour falling trend reliably predicts storms 2-4 hours ahead
+- **Altitude estimation** — useful for understanding microclimates in hilly or varied terrain
 - Integration: trivial (math on existing readings)
 
 **Vector-borne disease risk index — $0**
-Existing temperature + humidity data maps directly to mosquito breeding conditions. Optimal breeding: 20-30C with >55% RH. Combined with rainfall (if rain sensor added), this predicts dengue/malaria outbreak risk 2-4 weeks ahead. A simple composite score alerts community health workers when to clear standing water, distribute bed nets, or schedule larval surveys.
+Existing temperature + humidity data maps directly to mosquito breeding conditions. Optimal breeding: 20-30C with >55% RH. Combined with rainfall (if rain sensor added), this predicts dengue/malaria outbreak risk 2-4 weeks ahead. A simple composite score can trigger proactive measures — clearing standing water, distributing bed nets, scheduling larval surveys.
 - Integration: trivial (scoring function on existing data)
-- Humanitarian value: very high — vulnerable communities often lack formal disease surveillance
+- Humanitarian value: high — relevant anywhere mosquito-borne disease is a concern, from suburban Houston to rural Sub-Saharan Africa
 
 **CO2 / indoor air quality estimation — $0**
 The BME688's BSEC2 library provides estimated CO2, IAQ (Indoor Air Quality) index, and b-VOC (breath VOC) from its gas resistance sensor. Not scientifically accurate (±50-100 ppm), but useful for:
@@ -260,7 +266,7 @@ The BME688's BSEC2 library provides estimated CO2, IAQ (Indoor Air Quality) inde
 - Integration: trivial (enable BSEC2 library, already using BME688)
 
 **WiFi connectivity mapping — $0**
-The ESP32-S3 can passively scan nearby WiFi networks and record signal strength (RSSI). This maps the digital divide — showing which neighborhoods have poor connectivity, informing where to place WiFi access points or cellular boosters. Critical for communities using mobile money and emergency communications.
+The ESP32-S3 can passively scan nearby WiFi networks and record signal strength (RSSI). Maps connectivity coverage — useful for identifying dead zones, planning access point placement, or verifying coverage claims.
 - Integration: trivial (built-in WiFi scan API)
 
 ### Tier 2: Cheap additions ($1-5 per node, trivial-to-moderate integration)
@@ -274,10 +280,10 @@ A simple resistive or tipping-bucket rain sensor on a GPIO/ADC pin. Enables:
 - Integration: trivial (GPIO interrupt or ADC)
 
 **Soil moisture — $2-3**
-Capacitive soil moisture sensor on ADC. This is the single strongest predictor of landslide risk in hillside settlements — a major killer. Also enables:
+Capacitive soil moisture sensor on ADC. The single strongest predictor of landslide risk on hillsides. Also enables:
 - Flood risk assessment (saturated soil + rain = flash flooding)
-- Urban agriculture/food security (community garden monitoring)
-- Foundation stability monitoring for informal structures
+- Agriculture and garden monitoring
+- Foundation stability monitoring
 - Integration: trivial (ADC input)
 - Research backing: published studies validate capacitive sensors for cost-effective landslide early warning
 
@@ -285,7 +291,7 @@ Capacitive soil moisture sensor on ADC. This is the single strongest predictor o
 INMP441 MEMS I2S microphone. The ESP32-S3 has native I2S support. Enables:
 - Noise pollution mapping (correlates with stress, sleep disruption, cardiovascular disease)
 - Could detect emergency sounds (sirens, structural collapse, rushing water)
-- Infrastructure equity assessment (which neighborhoods suffer noise exposure)
+- Environmental equity assessment (which areas suffer disproportionate noise exposure)
 - Integration: moderate (I2S driver + audio buffering, can share Core 1 with ML)
 - Reference: github.com/ikostoski/esp32-i2s-slm (mature ESP32 sound level meter)
 
@@ -293,40 +299,40 @@ INMP441 MEMS I2S microphone. The ESP32-S3 has native I2S support. Enables:
 BH1750 on I2C bus (we already have UV). Enables:
 - Light pollution mapping (affects sleep, energy waste)
 - Solar resource assessment for community microgrid planning
-- Security assessment (informal settlements lacking street lighting)
+- Safety assessment (identifying poorly-lit areas)
 - Integration: trivial (add to existing I2C bus)
 
 **Accelerometer (seismic/structural) — $2-4**
 ADXL345 or MPU6050 on I2C. Enables:
-- Earthquake early warning (even 10 seconds of warning saves lives in poorly constructed settlements)
-- Building vibration monitoring (detect structural instability before collapse)
+- Earthquake early warning (even 10 seconds of warning enables protective action)
+- Building/structure vibration monitoring (detect instability before collapse)
 - Landslide detection (ground acceleration changes when soil becomes unstable)
 - Integration: moderate (I2C + FFT processing on Core 1)
 
 **Human presence detection — $1-2 (PIR) or $8-15 (mmWave radar)**
 PIR (HC-SR501) or LD2410 radar. Enables:
-- Cooling center occupancy during heat events
+- Cooling center / shelter occupancy during heat events
 - Evacuation monitoring during fires
-- Shelter utilization tracking in refugee camps
+- Space utilization tracking
 - Integration: trivial (PIR = GPIO) or moderate (radar = I2C)
 
 ### Tier 3: Optional specialized additions ($5-15+)
 
 **Water level sensor — $5-15**
-Ultrasonic or capacitive water level sensor for flood-prone locations. Direct flash flood early warning for downstream communities. High humanitarian value but only needed at specific deployment locations (streams, drainage channels, low points).
+Ultrasonic or capacitive water level sensor for flood-prone locations. Direct flash flood early warning for downstream areas. High value but only needed at specific deployment locations (streams, drainage channels, low points).
 
 **Methane detection — $5-8**
-MQ-4 sensor on ADC. Detects gas leaks in communities with informal gas connections and methane seepage near landfills. Cross-sensitive to other gases (H2, CO) so best used for trend detection and alerts rather than precise measurement.
+MQ-4 sensor on ADC. Detects gas leaks and methane seepage near landfills or natural gas infrastructure. Cross-sensitive to other gases (H2, CO) so best used for trend detection and alerts rather than precise measurement.
 
 **Power grid monitoring — $3-8**
-AC voltage monitor module detects grid outages, voltage sags, and power quality. Communities with unstable grid connections can broadcast outage alerts via mesh. Informs microgrid and solar capacity planning.
+AC voltage monitor module detects grid outages, voltage sags, and power quality. Nodes can broadcast outage alerts via mesh. Informs microgrid and solar capacity planning.
 
 ### Summary: Adjacent capability ROI
 
 | Capability | Added Cost | Integration | Humanitarian Value | New Sensor? |
 |---|---|---|---|---|
 | Weather prediction | $0 | Trivial | High | No |
-| Vector disease risk | $0 | Trivial | Very high | No |
+| Vector disease risk | $0 | Trivial | High | No |
 | CO2/IAQ estimation | $0 | Trivial | Medium | No |
 | WiFi coverage mapping | $0 | Trivial | Medium | No |
 | Rain detection | $2-4 | Trivial | High | Yes |
@@ -343,52 +349,61 @@ AC voltage monitor module detects grid outages, voltage sags, and power quality.
 
 The four $0-cost capabilities (weather, vector risk, CO2/IAQ, WiFi mapping) should be included in the base firmware from day one — they're pure software on existing sensors.
 
-Rain and soil moisture ($2-7 combined) should be standard optional headers on the PCB — they're trivially integrated and address landslide/flood risk which kills more people in developing countries than any other weather hazard.
+Rain and soil moisture ($2-7 combined) should be standard optional headers on the PCB — they're trivially integrated and address landslide/flood risk, one of the most common and deadly weather hazards globally.
 
 Everything else should be supported as optional modules: define the interface, reserve the GPIO/I2C/ADC pins, but don't require the hardware. Nodes deployed on hillsides get accelerometers; nodes near streams get water level sensors; nodes in shelters get PIR sensors.
 
 This "base + optional extensions" approach keeps the core node cost at $120-180 while enabling $5-15 per node additions for site-specific hazards.
 
-## Humanitarian Demand Side: What Organizations Actually Need
+## Humanitarian Demand Side: What Organizations and Communities Actually Need
 
-Research into WHO, UNHCR, OCHA, C40 Cities, and Sendai Framework requirements reveals consistent demand-side patterns:
+Vulnerable populations exist in every society — and climate change is creating new ones. Systems that currently manage heat, flooding, air quality, and fire risk were designed for historical climate conditions. As those conditions shift, the systems don't fail all at once — they degrade, becoming marginal before they become inadequate. The organizations and communities that need environmental data share a common problem: they can't see this degradation happening until it's too late.
+
+Research into WHO, UNHCR, OCHA, C40 Cities, the Sendai Framework, and municipal/regional governments reveals common demand-side patterns:
 
 ### Key finding: organizations want event detection, not just averages
-- Water contamination **episodes** (not just monthly E. coli sampling)
 - Acute air pollution **spikes** (not just annual PM2.5 averages)
 - Heat wave **intensity in real time** (not just temperature records)
 - Flash flood **warnings** (not just rainfall probability)
+- Water contamination **episodes** (not just monthly sampling)
 
 ### Spatial resolution: hyperlocal is the gap
 - Current monitoring: 1-2 stations per city, often 10-100km from vulnerable communities
 - Needed: neighborhood-level (100m-1km resolution)
-- Our platform addresses this directly with distributed nodes
+- Our platform addresses this directly with distributed nodes — whether the gap is a suburban neighborhood between weather stations or an entire district with no monitoring at all
+- This is a universal problem: heat islands in Phoenix, wildfire smoke corridors in suburban California, flood-prone neighborhoods in Houston are all under-monitored
+- Critically, coarse monitoring masks marginal conditions. A city-wide average that reads "moderate" can hide neighborhoods already at their limit — and those are the places that will fail first as conditions worsen
 
-### Data standards humanitarian platforms expect
-- **HXL (Humanitarian Exchange Language)** tagged CSV for HDX/OCHA integration
+### Data standards humanitarian and environmental platforms expect
 - **JSON API** for real-time feeds to early warning systems
 - **OGC SensorThings API** for IoT interoperability
-- **GeoJSON** for mapping platforms (OSM, HOT Tasking Manager)
+- **GeoJSON** for mapping platforms (OSM, municipal GIS, HOT Tasking Manager)
+- **HXL (Humanitarian Exchange Language)** tagged CSV for HDX/OCHA integration
 
 ### Trigger-based automation is the frontier
-The OCHA Early Warning → Early Action (EWEA) model uses pre-agreed thresholds to automatically release funding:
+The early warning / early action model uses pre-agreed thresholds to automatically trigger responses:
 - Sensor data crosses threshold → trigger fires → pre-positioned response activates
-- Example: Heat index >35C for 3+ days → automatic cash transfers to outdoor workers
-- Example: PM2.5 >200 µg/m³ → health intervention fund activated
-- Every $1 spent on anticipatory action saves $34 in emergency response (Nepal study)
+- Example: Heat index >35C for 3+ days → automatic alerts to outdoor workers, cooling center activation
+- Example: PM2.5 >200 µg/m3 → school outdoor activity restrictions, health advisories
+- In humanitarian contexts, OCHA's EWEA model uses this to automatically release funding — every $1 spent on anticipatory action saves $34 in emergency response (Nepal study)
+
+Beyond immediate triggers, continuous monitoring enables **trend-based early warning** — detecting when a system is approaching its capacity limit before it actually fails. A neighborhood that hits dangerous heat index 3 days per summer today may hit it 15 days per summer in five years. That trend, visible in longitudinal sensor data, is an actionable signal for infrastructure investment, policy change, or community adaptation — before the crisis arrives.
 
 ### SDG monitoring alignment
 Our platform directly supports measurement of:
 - **SDG 3.9.1**: Mortality from air pollution (hyperlocal PM2.5 data)
-- **SDG 11.6.2**: Annual mean PM2.5 in cities (neighborhood-level, filling informal settlement data gaps)
+- **SDG 11.6.2**: Annual mean PM2.5 in cities (neighborhood-level data that fills gaps in every city, not just developing ones)
 - **SDG 13.1.1**: Deaths from disasters (early warning reduces these)
 - **Sendai Framework Target D**: Local DRR strategy implementation
 
+Longitudinal data from distributed sensors is especially valuable for SDG tracking because it reveals *trajectory*, not just current state. A city meeting SDG 11.6.2 today but trending toward failure is a different policy problem than one that's been stable for a decade — and you can't distinguish the two without continuous hyperlocal data.
+
 ### Parametric insurance opportunities
-Beyond Lumkani's fire insurance model, sensor data enables:
+Sensor data enables threshold-triggered insurance products:
 - Heat stress income protection (outdoor workers, triggered by heat index threshold)
 - Flood property protection (triggered by rainfall + water level thresholds)
 - Air quality health intervention funds (triggered by PM2.5 hazardous levels)
+- Lumkani has already proven fire microinsurance paired with sensors at scale
 
 ## Development Phases
 
@@ -418,19 +433,18 @@ Beyond Lumkani's fire insurance model, sensor data enables:
 - Add data export: SensorThings API, OpenAQ format, Sensor.Community format
 - Build heat vulnerability map output (100m grid GeoJSON)
 
-### Phase 4: Humanitarian integration
+### Phase 4: Humanitarian integration + dashboard
 - OSM integration: tag sensor locations as monitoring stations
-- HDX publication: heat vulnerability indices as datasets
+- HDX publication: heat and environmental vulnerability indices as datasets
 - HXL-tagged data exports for OCHA compatibility
-- HOT Tasking Manager: heat/vulnerability data informs mapping priorities
+- HOT Tasking Manager: vulnerability data informs mapping priorities
 - EWEA trigger integration: define thresholds for anticipatory action
 - Web dashboard with map overlay
 
-### Phase 5: Extended sensing + community deployment
+### Phase 5: Extended sensing + deployment
 - PCB design with optional extension headers (rain, soil moisture, accelerometer, etc.)
 - Rain + soil moisture as standard optional modules
 - Seismic/structural monitoring for hillside deployments
 - 3D-printed weatherproof enclosure (IP67)
-- Community agent training materials
-- Deployment guide for informal settlements
+- Deployment guides (urban neighborhoods, rural properties, field operations, humanitarian response)
 - Explore parametric insurance partnerships (fire, heat, flood triggers)

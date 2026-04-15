@@ -1,6 +1,6 @@
-# Community Sentinel
+# Environmental Monitoring Platform
 
-An open-source, solar-powered environmental monitoring platform that combines fire detection, air quality monitoring, and urban heat mapping in a single LoRa-mesh-networked node with on-device ML inference.
+An open-source, solar-powered environmental monitoring platform that combines fire detection, air quality monitoring, and urban heat mapping in a single LoRa-mesh-networked node with on-device ML inference. Designed to map environmental vulnerability wherever it exists — and to identify where systems that are coping today are likely to fail as climate change pushes them past their limits.
 
 **Self-contained.** Each node runs on solar power with local storage and a 95dB buzzer — no external systems needed to detect and alert.
 
@@ -12,16 +12,18 @@ MIT License.
 
 ## Who This Is For
 
-Community Sentinel is designed for anyone who needs distributed environmental monitoring and can't (or doesn't want to) depend on existing infrastructure:
+Vulnerable populations exist in every society — and as climate change intensifies, communities that cope today will be pushed past their limits tomorrow. The infrastructure that currently works (drainage, cooling, air quality management) will start to fail its constituents, and new populations will become vulnerable. Mapping where conditions are marginal now helps us understand where they're likely to become dangerous soon.
+
+This platform is designed for anyone who needs distributed environmental monitoring and can't (or doesn't want to) depend on existing infrastructure:
 
 - **Neighborhoods and local groups** — hyperlocal heat island and air quality data for your own block, not the nearest weather station 5 miles away
 - **Schools and campuses** — outdoor air quality and heat safety monitoring across grounds
 - **Farms, ranches, and rural properties** — fire detection and weather monitoring where cellular coverage is spotty or absent
-- **Disaster response and field operations** — drop a mesh into an area and have monitoring running in minutes
-- **Informal settlements and underserved communities** — environmental hazard monitoring where no infrastructure exists
-- **Citizen science networks** — contribute data to OpenAQ, Sensor.Community, and other open platforms
+- **Disaster response and humanitarian operations** — drop a mesh into an area and have monitoring running in minutes
+- **Under-monitored communities** — environmental hazard detection where existing infrastructure doesn't reach or doesn't exist
+- **Citizen science and humanitarian data networks** — contribute data to OpenAQ, Sensor.Community, HOT/OSM, HDX, and other open platforms
 
-The common thread: you want environmental awareness in places where traditional monitoring doesn't reach, doesn't exist, or isn't granular enough.
+The common thread: you want environmental awareness in places where traditional monitoring doesn't reach, doesn't exist, or isn't granular enough. The humanitarian data ecosystems this platform feeds (HOT/OSM, HDX, OpenAQ) serve all of these contexts.
 
 ## Core Capabilities
 
@@ -32,7 +34,7 @@ Rate-of-rise temperature detection (proven by Lumkani to avoid cooking-smoke fal
 PM2.5/PM10 (Plantower PMS5003) + VOC/CO (Bosch BME688) for pollution mapping over time. Classifies pollution sources (cooking, traffic, industrial, wildfire smoke). Compatible with OpenAQ and Sensor.Community for global visibility.
 
 ### 3. Urban Heat Mapping
-Temperature, humidity, UV, and barometric pressure for heat index calculation. 100m grid resolution GeoJSON output for integration with mapping platforms including OpenStreetMap and humanitarian systems (HOT/HDX).
+Temperature, humidity, UV, and barometric pressure for heat index calculation and heat vulnerability mapping. Continuous data reveals not just where conditions are dangerous today, but where they're trending toward danger — identifying communities whose cooling infrastructure, drainage, or outdoor work patterns are approaching failure points. 100m grid resolution GeoJSON output for integration with humanitarian mapping platforms (HOT/OSM, HDX).
 
 ## Extended Capabilities (from existing sensors, low/no additional cost)
 
@@ -55,7 +57,7 @@ The core sensor stack enables several additional functions at zero or minimal ad
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│                      DATA PLATFORMS                       │
+│                     HUMANITARIAN DATA                      │
 │  OpenAQ | Sensor.Community | OSM/HOT | HDX | SensorThings│
 ├──────────────────────────────────────────────────────────┤
 │                     GATEWAY LAYER                         │
@@ -74,7 +76,7 @@ The core sensor stack enables several additional functions at zero or minimal ad
 
 Each **node** combines fire detection, air quality, and heat mapping sensors on a single solar-powered board. On-device Edge Impulse ML performs multi-hazard classification. Nodes form a LoRa mesh for alert propagation — fire alerts cascade to neighboring nodes within 30 seconds.
 
-A **gateway** collects data from the mesh, displays on a TFT screen, and optionally pushes to cloud platforms and open data ecosystems. The mesh operates fully without a gateway — the gateway adds connectivity, not dependency.
+A **gateway** collects data from the mesh, displays on a TFT screen, and optionally pushes to cloud platforms and humanitarian data ecosystems. The mesh operates fully without a gateway — the gateway adds connectivity, not dependency.
 
 ## Hardware (per node, ~$120-180)
 
@@ -92,13 +94,13 @@ A **gateway** collects data from the mesh, displays on a TFT screen, and optiona
 
 ## Data Interoperability
 
-When connected to a gateway, nodes can feed data to open platforms:
+Designed from day one to feed humanitarian and environmental data ecosystems:
 
 | Platform | Format | Purpose |
 |---|---|---|
 | OpenAQ | JSON API | Global air quality database |
-| Sensor.Community | Luftdaten JSON | Citizen science AQ network |
-| OpenStreetMap / HOT | `man_made=monitoring_station` | Community and humanitarian mapping |
+| Sensor.Community | Luftdaten JSON | Largest citizen science AQ network |
+| OpenStreetMap / HOT | `man_made=monitoring_station` | Humanitarian mapping |
 | HDX (Humanitarian Data Exchange) | GeoJSON / HXL-tagged CSV | Humanitarian coordination |
 | OGC SensorThings API | REST + MQTT | Standardized IoT interoperability |
 
@@ -118,7 +120,7 @@ dashboard/           Web dashboard (planned)
 
 ## Status
 
-**Research phase (current):** Evaluating architecture, sensor selection, and integration points. See [docs/research-summary.md](docs/research-summary.md) for full analysis.
+**Research phase (current):** Evaluating architecture, sensor selection, and humanitarian integration points. See [docs/research-summary.md](docs/research-summary.md) for full analysis.
 
 ## Inspirations and References
 
