@@ -1,20 +1,27 @@
-# Heat Monitoring
+# Community Sentinel
 
-An open-source, solar-powered environmental monitoring platform for protecting vulnerable urban communities. Combines fire detection, air quality monitoring, and urban heat mapping in a single LoRa-mesh-networked node with on-device ML inference.
+An open-source, solar-powered environmental monitoring platform that combines fire detection, air quality monitoring, and urban heat mapping in a single LoRa-mesh-networked node with on-device ML inference.
 
-Designed for deployment in informal settlements, refugee camps, and underserved urban areas where traditional monitoring infrastructure doesn't exist.
+**Self-contained.** Each node runs on solar power with local storage and a 95dB buzzer — no external systems needed to detect and alert.
+
+**No infrastructure required.** No WiFi, cellular, or cloud dependency. Nodes work out of the box in any environment — from a suburban backyard to a remote field site.
+
+**IoT mesh with edge analysis.** Nodes form a LoRa mesh (Meshtastic) and run Edge Impulse ML models on-device. The network detects, classifies, and propagates alerts without a central server.
 
 MIT License.
 
-## Why This Exists
+## Who This Is For
 
-Informal settlements face compounding environmental hazards — fire, extreme heat, and poor air quality — but lack the monitoring infrastructure that wealthier areas take for granted. Existing solutions address these hazards in isolation:
+Community Sentinel is designed for anyone who needs distributed environmental monitoring and can't (or doesn't want to) depend on existing infrastructure:
 
-- **Lumkani** (fire detection) proved that rate-of-rise temperature sensing works where smoke detectors fail (60,000+ deployments in South Africa)
-- **Sensor.Community** (air quality) proved that low-cost distributed PM2.5 networks work at scale (35,000+ stations worldwide)
-- **NOAA heat campaigns** proved that distributed temperature sensors reveal dangerous urban heat islands invisible to weather stations
+- **Neighborhoods and local groups** — hyperlocal heat island and air quality data for your own block, not the nearest weather station 5 miles away
+- **Schools and campuses** — outdoor air quality and heat safety monitoring across grounds
+- **Farms, ranches, and rural properties** — fire detection and weather monitoring where cellular coverage is spotty or absent
+- **Disaster response and field operations** — drop a mesh into an area and have monitoring running in minutes
+- **Informal settlements and underserved communities** — environmental hazard monitoring where no infrastructure exists
+- **Citizen science networks** — contribute data to OpenAQ, Sensor.Community, and other open platforms
 
-No existing open-source project combines all three. This platform fills that gap, with data interoperability designed to feed humanitarian mapping ecosystems (HOT/OSM, OpenAQ, HDX).
+The common thread: you want environmental awareness in places where traditional monitoring doesn't reach, doesn't exist, or isn't granular enough.
 
 ## Core Capabilities
 
@@ -22,10 +29,10 @@ No existing open-source project combines all three. This platform fills that gap
 Rate-of-rise temperature detection (proven by Lumkani to avoid cooking-smoke false alarms) confirmed by CO/VOC + PM2.5 sensor fusion. Multi-sensor ML inference is far more reliable than any single sensor. Mesh-propagated alert cascade with local 95dB buzzer — neighbors are warned within 30 seconds.
 
 ### 2. Air Quality Monitoring
-PM2.5/PM10 (Plantower PMS5003) + VOC/CO (Bosch BME688) for pollution mapping over time. Classifies pollution sources (cooking, traffic, industrial, wildfire smoke). Data feeds to OpenAQ and Sensor.Community for global visibility.
+PM2.5/PM10 (Plantower PMS5003) + VOC/CO (Bosch BME688) for pollution mapping over time. Classifies pollution sources (cooking, traffic, industrial, wildfire smoke). Compatible with OpenAQ and Sensor.Community for global visibility.
 
 ### 3. Urban Heat Mapping
-Temperature, humidity, UV, and barometric pressure for heat index calculation and heat vulnerability indices. Designed to layer onto Humanitarian OpenStreetMap (HOT) data. 100m grid resolution GeoJSON output for integration with humanitarian mapping platforms.
+Temperature, humidity, UV, and barometric pressure for heat index calculation. 100m grid resolution GeoJSON output for integration with mapping platforms including OpenStreetMap and humanitarian systems (HOT/HDX).
 
 ## Extended Capabilities (from existing sensors, low/no additional cost)
 
@@ -48,7 +55,7 @@ The core sensor stack enables several additional functions at zero or minimal ad
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│                     HUMANITARIAN DATA                     │
+│                      DATA PLATFORMS                       │
 │  OpenAQ | Sensor.Community | OSM/HOT | HDX | SensorThings│
 ├──────────────────────────────────────────────────────────┤
 │                     GATEWAY LAYER                         │
@@ -67,7 +74,7 @@ The core sensor stack enables several additional functions at zero or minimal ad
 
 Each **node** combines fire detection, air quality, and heat mapping sensors on a single solar-powered board. On-device Edge Impulse ML performs multi-hazard classification. Nodes form a LoRa mesh for alert propagation — fire alerts cascade to neighboring nodes within 30 seconds.
 
-A **gateway** collects data from the mesh, displays on a TFT screen, and pushes to cloud platforms and humanitarian data ecosystems.
+A **gateway** collects data from the mesh, displays on a TFT screen, and optionally pushes to cloud platforms and open data ecosystems. The mesh operates fully without a gateway — the gateway adds connectivity, not dependency.
 
 ## Hardware (per node, ~$120-180)
 
@@ -85,14 +92,14 @@ A **gateway** collects data from the mesh, displays on a TFT screen, and pushes 
 
 ## Data Interoperability
 
-Designed from day one to feed humanitarian data ecosystems:
+When connected to a gateway, nodes can feed data to open platforms:
 
 | Platform | Format | Purpose |
 |---|---|---|
 | OpenAQ | JSON API | Global air quality database |
-| Sensor.Community | Luftdaten JSON | Largest citizen science AQ network |
-| OpenStreetMap / HOT | `man_made=monitoring_station` | Humanitarian mapping |
-| HDX (Humanitarian Data Exchange) | GeoJSON / HXL-tagged CSV | UN OCHA humanitarian coordination |
+| Sensor.Community | Luftdaten JSON | Citizen science AQ network |
+| OpenStreetMap / HOT | `man_made=monitoring_station` | Community and humanitarian mapping |
+| HDX (Humanitarian Data Exchange) | GeoJSON / HXL-tagged CSV | Humanitarian coordination |
 | OGC SensorThings API | REST + MQTT | Standardized IoT interoperability |
 
 ## Repo Structure
@@ -111,12 +118,12 @@ dashboard/           Web dashboard (planned)
 
 ## Status
 
-**Research phase (current):** Evaluating architecture, sensor selection, and humanitarian integration points. See [docs/research-summary.md](docs/research-summary.md) for full analysis.
+**Research phase (current):** Evaluating architecture, sensor selection, and integration points. See [docs/research-summary.md](docs/research-summary.md) for full analysis.
 
 ## Inspirations and References
 
-- [Lumkani](https://lumkani.com/) — fire detection for informal settlements (design principles)
+- [Lumkani](https://lumkani.com/) — rate-of-rise fire detection at scale (60,000+ deployments)
 - [Forest-Guard](https://github.com/MukeshSankhla/Forest-Guard/) — ESP32-S3 + LoRa + Edge Impulse architecture
-- [Sensor.Community](https://sensor.community/) — citizen science air quality network (data standards)
-- [CanAirIO](https://github.com/kike-canaries) — open-source air quality for developing countries
-- [Humanitarian OpenStreetMap Team](https://www.hotosm.org/) — community vulnerability mapping
+- [Sensor.Community](https://sensor.community/) — citizen science air quality network (35,000+ stations)
+- [CanAirIO](https://github.com/kike-canaries) — open-source air quality monitoring
+- [NOAA urban heat campaigns](https://www.noaa.gov/) — distributed temperature sensing for urban heat islands
